@@ -1,8 +1,12 @@
 package com.pedido.model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.pedido.enums.StatusPedido;
+import com.pedido.model.Cliente;
+import com.pedido.model.Entregador;
+import com.pedido.model.Produto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,7 +32,7 @@ public class Pedido {
     private Long id;
 
     @Column
-    private LocalDate dataHora;
+    private LocalDateTime dataHora;
 
     @Enumerated(EnumType.STRING)
     @Column
@@ -37,12 +41,16 @@ public class Pedido {
     @Column
     private Double valorTotal;
 
-    @Column
-    private Long clienteId;
+    @ManyToOne
+    @JoinColumn(name="id_cliente");
+    private Cliente clienteId;
 
     @ManyToOne
     @JoinColumn(name="id_produto");
-    private Produto produto;
+    private Produto produtoId;
 
+    @ManyToOne
+    @JoinColumn(name="id_entregador");
+    private Entregador entregadorId;
 
 }
