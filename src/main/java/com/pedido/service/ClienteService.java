@@ -5,8 +5,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.pedido.dto.ClienteRequestDTO;
-import com.pedido.dto.ClienteResponseDTO;
 import com.pedido.model.Cliente;
 import com.pedido.repository.ClienteRepository;
 
@@ -18,36 +16,26 @@ public class ClienteService {
 
     private final ClienteRepository repository;
 
-    public ClienteResponseDTO criar(ClienteRequestDTO dto) {
-        Cliente cliente = new Cliente();
-        cliente.setName(dto.getName());
-        cliente.setTelefone(dto.getTelefone());
-        cliente.setEmail(dto.getEmail());
-
-        Cliente clienteSalvo = repository.save(cliente);
-
-        return toResponseDTO(clienteSalvo);
+    public Cliente criar(Cliente cliente) {
+        return repository.save(cliente);
 
     }
 
-    public ClienteResponseDTO buscarPorId(Long id) {
-        Cliente cliente = repository.findById(id)
+    public Cliente buscarPorId(Long id) {
+        return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
-
-        return toResponseDTO(cliente);
     }
 
-    public ClienteResponseDTO atualizar(Long id, ClienteRequestDTO dto) {
-        Cliente cliente = repository.findById(id)
+    public Cliente atualizar(Long id, Cliente cliente) {
+        Cliente clienteExistente = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
-        cliente.setName(dto.getName());
-        cliente.setTelefone(dto.getTelefone());
-        cliente.setEmail(dto.getEmail());
+        clienteExistente.setName(cliente.getName());
+        clienteExistente.setTelefone(cliente.getTelefone());
+        cliente.setEmail(cliente.getEmail());
 
         Cliente clienteAtualizado = repository.save(cliente);
-
-        return toResponseDTO(clienteAtualizado);
+        return clienteAtualizado;
     }
 
     public void deletar(Long id) {
@@ -57,23 +45,8 @@ public class ClienteService {
         repository.delete(cliente);
     }
 
-    public List<ClienteResponseDTO> ListarTodos(){
-        List<Cliente> clientes = repository.findAll();
-        return clientes.stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+    public List<Cliente> ListarTodos() {
+        return repository.findAll();
     }
 
-
-    private ClienteResponseDTO toResponseDTO(Cliente cliente) {
-
-        ClienteResponseDTO dto = new ClienteResponseDTO();
-
-        dto.setId(cliente.getId());
-        dto.setName(cliente.getName());
-        dto.setTelefone(cliente.getTelefone());
-        dto.setEmail(cliente.getEmail());
-
-        return dto;
-    }   
 }

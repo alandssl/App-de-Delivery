@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 public class Pedido {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
@@ -45,15 +45,14 @@ public class Pedido {
     private Double valorTotal;
 
     @ManyToOne
-    @JoinColumn(name="id_cliente");
+    @JoinColumn(name = "id_cliente")
     private Cliente clienteId;
 
-    @OneToMany  
-    @JoinColumn(mappedBy = "pedido", cascade = CascadeType.ALL);
-    private Produto List<PedidoItem> itens;
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
+    private List<PedidoItem> itens;
 
     @ManyToOne
-    @JoinColumn(name="id_entregador");
+    @JoinColumn(name = "id_entregador")
     private Entregador entregadorId;
 
 }
