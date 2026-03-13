@@ -14,7 +14,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Entity
 @Table(name = "clientes")
 @AllArgsConstructor
@@ -24,20 +23,19 @@ import lombok.Setter;
 public class Cliente {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column
     private String name;
 
     @Column
     private String telefone;
 
-    @Column
+    @Column(unique = true)
     private String email;
 
     @OneToMany(mappedBy = "cliente")
     private List<Endereco> enderecos;
-
 
 }

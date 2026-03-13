@@ -1,7 +1,6 @@
 package com.pedido.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -19,11 +18,6 @@ public class ClienteService {
     public Cliente criar(Cliente cliente) {
         return repository.save(cliente);
 
-    }
-
-    public Cliente buscarPorId(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
     }
 
     public Cliente atualizar(Long id, Cliente cliente) {
