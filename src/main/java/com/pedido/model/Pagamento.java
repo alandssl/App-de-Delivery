@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -27,8 +29,14 @@ public class Pagamento {
     @Column(name="metodo_pagamento")
     private String metodoPagamento;
 
-    private boolean pago; // Indica se o pagamento foi realizado ou não
+    private Boolean pago; // Indica se o pagamento foi realizado ou não
 
     @OneToOne
     private Pedido pedido; // Associação com o pedido correspondente
+
+    @ManyToOne
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente; // Associação com o cliente que realizou o pagamento
+
+
 }
