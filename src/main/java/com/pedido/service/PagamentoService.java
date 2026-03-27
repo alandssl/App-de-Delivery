@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 import com.pedido.dto.PagamentoRequestDTO;
 import com.pedido.dto.PagamentoResponseDTO;
 import com.pedido.mapper.PagamentoMapper;
+import com.pedido.model.Cliente;
 import com.pedido.model.Pagamento;
 import com.pedido.model.Pedido;
+import com.pedido.repository.ClienteRepository;
 import com.pedido.repository.PagamentoRepository;
 import com.pedido.repository.PedidoRepository;
 
@@ -21,6 +23,7 @@ public class PagamentoService {
 
     private final PagamentoRepository repository;
     private final PedidoRepository pedidoRepository;
+    private final ClienteRepository clienteRepository;
 
     public List<PagamentoResponseDTO> mostrarPagamentosCliente(Long clienteId){
         List<Pagamento> pagamentos = repository.findByClienteId_Id(clienteId);
@@ -34,8 +37,11 @@ public class PagamentoService {
         Pedido pedido = pedidoRepository.findById(dto.getPedidoId())
         .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
+        Cliente cliente = clienteRepository.findById(dto.getClienteId())
+        .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+
         // Passar de DTO -> ENTITY
-        Pagamento pagamento = PagamentoMapper.toEntity(dto, pedido);
+        Pagamento pagamento = PagamentoMapper.toEntity(dto, pedido, cliente);
 
         // SALVAR NO BANCO
         Pagamento pagamentoSalvo = repository.save(pagamento);
@@ -44,7 +50,6 @@ public class PagamentoService {
         return PagamentoMapper.toResponseDTO(pagamentoSalvo);
     }
 
-
-    
+       
 
 }

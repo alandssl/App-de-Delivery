@@ -15,5 +15,5 @@ public class PagamentoResponseDTO {
     private String metodoPagamento;
     private boolean pago;
     private Long pedidoId;
-
+    private Long clienteId;
 }

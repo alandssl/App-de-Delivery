@@ -13,5 +13,6 @@ public class PagamentoRequestDTO {
 
     private String metodoPagamento;
     private Long pedidoId;
+    private Long clienteId;
 
 }

@@ -36,7 +36,7 @@ public class Pagamento {
 
     @ManyToOne
     @JoinColumn(name = "cliente_id")
-    private Cliente cliente; // Associação com o cliente que realizou o pagamento
+    private Cliente clienteId; // Associação com o cliente que realizou o pagamento
 
 
 }
