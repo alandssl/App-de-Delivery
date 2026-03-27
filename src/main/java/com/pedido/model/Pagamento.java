@@ -32,7 +32,7 @@ public class Pagamento {
     private Boolean pago; // Indica se o pagamento foi realizado ou não
 
     @OneToOne
-    private Pedido pedido; // Associação com o pedido correspondente
+    private Pedido pedidoId; // Associação com o pedido correspondente
 
     @ManyToOne
     @JoinColumn(name = "cliente_id")

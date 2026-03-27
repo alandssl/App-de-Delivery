@@ -36,4 +36,6 @@ public class PedidoItem {
 
     private Double valorUnitario;
 
+    private String observacao;
+
 }

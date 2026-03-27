@@ -1,13 +1,9 @@
 package com.pedido.model;
 
-import java.util.List;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.pedido.enums.StatusPedido;
-import com.pedido.model.Cliente;
-import com.pedido.model.Entregador;
-import com.pedido.model.Produto;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -22,11 +18,15 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "pedidos")
 @AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
 public class Pedido {
 
