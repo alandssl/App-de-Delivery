@@ -11,5 +11,5 @@ import com.pedido.model.Pagamento;
 public interface PagamentoRepository extends JpaRepository<Pagamento, Long> {
 
 
-    List<Pagamento> findByClienteId_Id(Long clienteId);
+    List<Pagamento> findByUsuarioId_Id(Long usuarioId);
 }

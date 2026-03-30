@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.pedido.model.Cliente;
-import com.pedido.repository.ClienteRepository;
+import com.pedido.model.Usuario;
+import com.pedido.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -13,33 +13,32 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ClienteService {
 
-    private final ClienteRepository repository;
+    private final UsuarioRepository repository;
 
-    public Cliente criar(Cliente cliente) {
-        return repository.save(cliente);
-
+    public Usuario criar(Usuario usuario) {
+        return repository.save(usuario);
     }
 
-    public Cliente atualizar(Long id, Cliente cliente) {
-        Cliente clienteExistente = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+    public Usuario atualizar(Long id, Usuario usuario) {
+        Usuario usuarioExistente = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario não encontrado"));
 
-        clienteExistente.setName(cliente.getName());
-        clienteExistente.setTelefone(cliente.getTelefone());
-        cliente.setEmail(cliente.getEmail());
+        usuarioExistente.setName(usuario.getName());
+        usuarioExistente.setTelefone(usuario.getTelefone());
+        usuario.setEmail(usuario.getEmail());
 
-        Cliente clienteAtualizado = repository.save(cliente);
-        return clienteAtualizado;
+        Usuario usuarioAtualizado = repository.save(usuario);
+        return usuarioAtualizado;
     }
 
     public void deletar(Long id) {
-        Cliente cliente = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+        Usuario usuario = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario não encontrado"));
 
-        repository.delete(cliente);
+        repository.delete(usuario);
     }
 
-    public List<Cliente> ListarTodos() {
+    public List<Usuario> ListarTodos() {
         return repository.findAll();
     }
 

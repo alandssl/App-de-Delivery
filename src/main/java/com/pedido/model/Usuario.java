@@ -15,12 +15,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "clientes")
+@Table(name = "usuarios")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class Cliente {
+public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,5 +37,7 @@ public class Cliente {
 
     @OneToMany(mappedBy = "cliente")
     private List<Endereco> enderecos;
+
+    private Boolean isAdmin;
 
 }

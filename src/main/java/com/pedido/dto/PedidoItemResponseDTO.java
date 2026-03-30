@@ -15,5 +15,6 @@ public class PedidoItemResponseDTO {
     private String nomeProduto;
     private Integer quantidade;
     private Double valorUnitario;
+    private Long produtoId;
 
 }
