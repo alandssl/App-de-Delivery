@@ -42,7 +42,7 @@ public class PedidoItem {
 
     private String observacao;
 
-     @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt; // Data e hora em que o pagamento foi criado
 
     @Column(name = "excluded_at")
