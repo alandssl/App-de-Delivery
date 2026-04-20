@@ -1,6 +1,7 @@
 package com.pedido.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -40,5 +41,17 @@ public class ProdutoService {
         produtoExistente.setExcludedAt(LocalDateTime.now());
         return ProdutoMapper.toResponseDTO(repository.save(produtoExistente));
     }
+
+    public ProdutoResponseDTO buscarPorId(Long id) {
+    Produto produto = repository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+    return ProdutoMapper.toResponseDTO(produto);
+}
+
+    public List<ProdutoResponseDTO> listarTodos() {
+    return repository.findAll().stream()
+        .map(ProdutoMapper::toResponseDTO)
+        .toList();
+}
 
 }

@@ -30,7 +30,7 @@ public class PedidoItem {
 
     @ManyToOne
     @JoinColumn(name="id_pedido")
-    private Pedido pedidoId;
+    private Pedido pedido;
 
     @ManyToOne
     @JoinColumn(name="id_produto")

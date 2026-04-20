@@ -30,10 +30,11 @@ public class PedidoService {
 
         Pagamento pagamento = new Pagamento();
 
-        if(pedido.getStatusPedido() == StatusPedido.PEDIDO_ACEITO && pagamento.getPago() == true || 
-        pedido.getStatusPedido() == StatusPedido.PEDIDO_ACEITO && pagamento.getMetodoPagamento() == "PAGAR NA ENTREGA"){
-            pedido.setDataHora(LocalDateTime.now());
-        }
+        if (pedido.getStatusPedido() == StatusPedido.PEDIDO_ACEITO && (Boolean.TRUE.equals(pagamento.getPago()) ||
+            "PAGAR NA ENTREGA".equals(pagamento.getMetodoPagamento()))) {
+
+    pedido.setDataHora(LocalDateTime.now());
+}
 
         // SALVAR NO BANCO
         repository.save(pedido);
@@ -50,6 +51,8 @@ public class PedidoService {
             .map(PedidoItemMapper::toEntity)
             .collect(Collectors.toList());
         // seta no pedido
+        itens.forEach(item -> item.setPedido(pedido));
+
         pedido.setItens(itens);
         pedido.setValorTotal(itens.stream().mapToDouble(i -> i.getValorUnitario() * i.getQuantidade()).sum());
         // SALVAR NO BANCO

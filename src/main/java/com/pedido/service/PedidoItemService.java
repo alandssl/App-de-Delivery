@@ -6,12 +6,10 @@ import org.springframework.stereotype.Service;
 
 import com.pedido.dto.PedidoItemRequestDTO;
 import com.pedido.dto.PedidoItemResponseDTO;
-import com.pedido.dto.PedidoResponseDTO;
 import com.pedido.mapper.PedidoItemMapper;
 import com.pedido.model.PedidoItem;
 import com.pedido.model.Usuario;
 import com.pedido.repository.PedidoItemRepository;
-import com.pedido.repository.PedidoRepository;
 import com.pedido.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -36,7 +34,7 @@ public class PedidoItemService {
         Usuario usuarioLogado = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if (usuarioLogado.getIsAdmin() == true) {
+        if (Boolean.TRUE.equals(usuarioLogado.getIsAdmin())) {
             itemExistente.setValorUnitario(dto.getValorUnitario());
         }
         return PedidoItemMapper.toResponseDTO(repository.save(itemExistente));

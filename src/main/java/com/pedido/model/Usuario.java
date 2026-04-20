@@ -1,12 +1,11 @@
 package com.pedido.model;
 
-import java.util.List;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -30,13 +29,20 @@ public class Usuario {
     private String name;
 
     @Column
+    private String cpf;
+
+    @Column
+    private String senha;
+
+    @Column
     private String telefone;
 
     @Column(unique = true)
     private String email;
 
-    @OneToMany(mappedBy = "cliente")
-    private List<Endereco> enderecos;
+    @OneToMany
+    @JoinColumn(name = "endereco_id", nullable = true)
+    private Endereco enderecos;
 
     private Boolean isAdmin;
 

@@ -45,6 +45,9 @@ public class Pedido {
     @Column
     private Double valorTotal;
 
+    @Column
+    private Double avalicao;
+    
     @ManyToOne
     @JoinColumn(name = "id_usuario")
     private Usuario usuarioId;

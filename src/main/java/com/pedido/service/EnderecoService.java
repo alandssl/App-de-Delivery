@@ -33,7 +33,7 @@ public class EnderecoService {
         enderecoExistente.setCidade(endereco.getCidade());
         enderecoExistente.setCep(endereco.getCep());
 
-        Endereco enderecoAtualizado = repository.save(endereco);
+        Endereco enderecoAtualizado = repository.save(enderecoExistente);
         return enderecoAtualizado;
     }
 

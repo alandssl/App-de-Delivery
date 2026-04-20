@@ -34,6 +34,15 @@ public class Produto {
     private String descricao;
 
     @Column
+    private String restaurante;
+
+    @Column(name = "tempo_preparo")
+    private String tempo_preparo;
+
+    @Column(name = "imagem_url")
+    private String imagemUrl;
+
+    @Column
     private Double preco;
 
     @Column(name = "created_at", updatable = false)
