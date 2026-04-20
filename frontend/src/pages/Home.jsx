@@ -301,7 +301,7 @@ export default function Home({ user, onLogout }) {
                 deliveryTime: "20-30 min",
                 category: "Mexicano"
               },
-            {restaurants.map((restaurant, index) => (
+            ].map((restaurant, index) => (
               <div
                 key={index}
                 onClick={() => addRestaurantToCart(restaurant, index)}

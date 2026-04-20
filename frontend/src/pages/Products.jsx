@@ -7,6 +7,7 @@ import { useCart } from '../contexts/CartContext';
 export default function Products({ user, onLogout }) {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { cart, addToCart, updateQuantity, itemCount } = useCart();
@@ -15,9 +16,36 @@ export default function Products({ user, onLogout }) {
     fetchProducts().then(setProducts).catch(console.error);
   }, []);
 
-  const filteredProducts = products.filter(product =>
-    product.nome.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const categories = [
+    { name: 'Todos', emoji: '🍽️' },
+    { name: 'Pizza', emoji: '🍕' },
+    { name: 'Hambúrguer', emoji: '🍔' },
+    { name: 'Salada', emoji: '🥗' },
+    { name: 'Bebida', emoji: '🥤' },
+    { name: 'Sobremesa', emoji: '🍰' }
+  ];
+
+  const categoryKeywords = {
+    Todos: [],
+    Pizza: ['pizza'],
+    'Hambúrguer': ['hambúrguer', 'burger'],
+    Salada: ['salada'],
+    Bebida: ['refrigerante', 'bebida', 'coca'],
+    Sobremesa: ['sorvete', 'doce', 'sobremesa']
+  };
+
+  const filteredProducts = products.filter((product) => {
+    const lowerName = product.nome.toLowerCase();
+    const lowerDescription = product.descricao.toLowerCase();
+    const matchesSearch = lowerName.includes(searchTerm.toLowerCase());
+
+    const matchesCategory = selectedCategory === 'Todos' ||
+      categoryKeywords[selectedCategory].some((keyword) =>
+        lowerName.includes(keyword) || lowerDescription.includes(keyword)
+      );
+
+    return matchesSearch && matchesCategory;
+  });
 
   const getPreparationTime = (product) => {
     const name = product.nome.toLowerCase();
@@ -138,19 +166,17 @@ export default function Products({ user, onLogout }) {
 
             {/* Categories Filter */}
             <div className="flex flex-wrap gap-2 justify-center">
-              {[
-                { name: 'Todos', emoji: '🍽️', active: !searchTerm },
-                { name: 'Pizza', emoji: '🍕' },
-                { name: 'Hambúrguer', emoji: '🍔' },
-                { name: 'Salada', emoji: '🥗' },
-                { name: 'Bebida', emoji: '🥤' },
-                { name: 'Sobremesa', emoji: '🍰' }
-              ].map((category) => (
+              {categories.map((category) => (
                 <button
                   key={category.name}
-                  onClick={() => setSearchTerm(category.name === 'Todos' ? '' : category.name)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                    (category.active || searchTerm === category.name)
+                  onClick={() => {
+                    setSelectedCategory(category.name);
+                    if (category.name === 'Todos') {
+                      setSearchTerm('');
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                    selectedCategory === category.name
                       ? 'bg-primary text-white shadow-md'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
@@ -284,7 +310,10 @@ export default function Products({ user, onLogout }) {
                 Tente buscar por outros termos ou navegue pelas categorias.
               </p>
               <button
-                onClick={() => setSearchTerm('')}
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('Todos');
+                }}
                 className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
               >
                 Ver Todos os Produtos
