@@ -6,10 +6,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://localhost:8080',
-      '/produtos': 'http://localhost:8080',
-      '/pedidos': 'http://localhost:8080',
-      '/pedido-itens': 'http://localhost:8080'
+      '/api': 'http://127.0.0.1:8080',
+      '/produtos': 'http://127.0.0.1:8080',
+      '/pedidos': 'http://127.0.0.1:8080',
+      '/pedido-itens': 'http://127.0.0.1:8080',
+      '/enderecos': 'http://127.0.0.1:8080'
     }
   }
 });

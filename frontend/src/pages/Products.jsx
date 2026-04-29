@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Minus, ShoppingCart, Search, User, Menu, X, LogOut } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Search, User, Menu, X, LogOut, Star, Clock, Filter, ChevronLeft } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { fetchProducts } from '../services/api';
+import { fetchProducts, rateProduct } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 
 export default function Products({ user, onLogout }) {
@@ -9,41 +9,32 @@ export default function Products({ user, onLogout }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [ratingModal, setRatingModal] = useState({ isOpen: false, product: null });
   const location = useLocation();
   const { cart, addToCart, updateQuantity, itemCount } = useCart();
 
   useEffect(() => {
-    fetchProducts().then(setProducts).catch(console.error);
+    fetchProducts().then(setProducts).catch(error => {
+      console.error(error);
+    });
   }, []);
 
   const categories = [
-    { name: 'Todos', emoji: '🍽️' },
-    { name: 'Pizza', emoji: '🍕' },
-    { name: 'Hambúrguer', emoji: '🍔' },
-    { name: 'Salada', emoji: '🥗' },
-    { name: 'Bebida', emoji: '🥤' },
-    { name: 'Sobremesa', emoji: '🍰' }
+    { id: 'Todos', name: 'Todos', emoji: '🍽️' },
+    { id: 'PIIZAS', name: 'Pizzas', emoji: '🍕' },
+    { id: 'HAMBURGUERES', name: 'Hamburger', emoji: '🍔' },
+    { id: 'JAPONESA', name: 'Japonesa', emoji: '🍣' },
+    { id: 'BRASILEIRA', name: 'Brasileira', emoji: '🍲' },
+    { id: 'SOBREMESAS', name: 'Sobremesas', emoji: '🍰' },
+    { id: 'BEBIDAS', name: 'Bebidas', emoji: '🥤' },
+    { id: 'SAUDÁVEL', name: 'Saudável', emoji: '🥗' },
+    { id: 'LANCHES', name: 'Lanches', emoji: '🥪' }
   ];
 
-  const categoryKeywords = {
-    Todos: [],
-    Pizza: ['pizza'],
-    'Hambúrguer': ['hambúrguer', 'burger'],
-    Salada: ['salada'],
-    Bebida: ['refrigerante', 'bebida', 'coca'],
-    Sobremesa: ['sorvete', 'doce', 'sobremesa']
-  };
-
   const filteredProducts = products.filter((product) => {
-    const lowerName = product.nome.toLowerCase();
-    const lowerDescription = product.descricao.toLowerCase();
-    const matchesSearch = lowerName.includes(searchTerm.toLowerCase());
-
-    const matchesCategory = selectedCategory === 'Todos' ||
-      categoryKeywords[selectedCategory].some((keyword) =>
-        lowerName.includes(keyword) || lowerDescription.includes(keyword)
-      );
-
+    const matchesSearch = product.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.descricao.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'Todos' || product.categoriaLanches === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -52,137 +43,74 @@ export default function Products({ user, onLogout }) {
     if (name.includes('pizza')) return 25;
     if (name.includes('hambúrguer') || name.includes('burger')) return 18;
     if (name.includes('salada')) return 15;
-    if (name.includes('refrigerante') || name.includes('bebida')) return 5;
-    if (name.includes('sorvete') || name.includes('doce')) return 10;
     return 20;
   };
 
-  const navigation = [
-    { name: 'Início', href: '/' },
-    { name: 'Produtos', href: '/products' },
-    { name: 'Carrinho', href: '/cart' },
-    { name: 'Pedidos', href: '/orders' },
-    { name: 'Perfil', href: '/profile' }
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-primary to-purple-600 shadow-lg">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Premium Header */}
+      <header className="glass sticky top-0 z-[60] border-b border-gray-200/50">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Link to="/" className="text-2xl font-bold text-white hover:text-gray-100 transition-colors">
-                🍕 Delivery
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center gap-6">
+              <Link to="/" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                <ChevronLeft className="w-6 h-6 text-gray-600" />
               </Link>
+              <h1 className="text-xl font-black text-gray-900 tracking-tight uppercase">Cardápio</h1>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`text-sm font-medium transition-colors ${
-                    location.pathname === item.href
-                      ? 'text-white font-semibold'
-                      : 'text-gray-200 hover:text-white'
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </nav>
-
             <div className="flex items-center gap-4">
-              <Link to="/cart" className="relative">
-                <ShoppingCart className="w-6 h-6 text-white hover:text-gray-100" />
-                <span className="absolute -top-2 -right-2 bg-white text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                  {itemCount}
-                </span>
+              <Link to="/cart" className="p-3 bg-white border border-gray-200 rounded-2xl relative hover:border-primary transition-colors group">
+                <ShoppingCart className="w-5 h-5 text-gray-600 group-hover:text-primary" />
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold ring-2 ring-white">
+                    {itemCount}
+                  </span>
+                )}
               </Link>
-
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-white" />
-                <span className="text-sm font-medium text-white">{user?.name}</span>
-              </div>
-
-              <button
-                onClick={onLogout}
-                className="text-white hover:text-red-300 transition-colors"
-              >
+              <Link to="/profile" className="hidden md:flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-2xl hover:border-primary transition-all group">
+                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary transition-colors">
+                  <User className="w-4 h-4 text-primary group-hover:text-white transition-colors" />
+                </div>
+                <span className="text-sm font-bold text-gray-900">{user?.name?.split(' ')[0]}</span>
+              </Link>
+              <button onClick={onLogout} className="p-3 bg-white border border-gray-200 rounded-2xl text-gray-400 hover:text-red-500 hover:border-red-100 transition-all">
                 <LogOut className="w-5 h-5" />
-              </button>
-
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden text-white"
-              >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
-
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="md:hidden bg-white rounded-lg shadow-lg mt-2 py-4">
-              <nav className="flex flex-col gap-4 px-4">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`text-sm font-medium transition-colors ${
-                      location.pathname === item.href
-                        ? 'text-primary font-semibold'
-                        : 'text-gray-600 hover:text-primary'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-          )}
         </div>
       </header>
 
-      {/* Search and Filters */}
-      <section className="py-6 bg-white shadow-sm">
+      {/* Search and Category Bar */}
+      <section className="bg-white border-b border-gray-100 py-6 sticky top-20 z-50">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            {/* Search Bar */}
-            <div className="relative mb-6">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <div className="flex flex-col lg:flex-row gap-4 items-center">
+            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-[24px] w-full lg:max-w-md focus-within:bg-white focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all group overflow-hidden">
+              <div className="pl-6 text-gray-400 group-focus-within:text-primary transition-colors">
+                <Search className="w-5 h-5" />
+              </div>
               <input
                 type="text"
-                placeholder="Buscar pratos deliciosos..."
+                placeholder="Busque por pratos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 bg-white text-lg focus:border-primary focus:outline-none transition-colors shadow-sm"
+                className="w-full px-4 py-4 bg-transparent outline-none text-gray-900 placeholder-gray-400 font-medium"
               />
             </div>
 
-            {/* Categories Filter */}
-            <div className="flex flex-wrap gap-2 justify-center">
-              {categories.map((category) => (
+            <div className="flex gap-2 overflow-x-auto pb-1 w-full no-scrollbar">
+              {categories.map((cat) => (
                 <button
-                  key={category.name}
-                  onClick={() => {
-                    setSelectedCategory(category.name);
-                    if (category.name === 'Todos') {
-                      setSearchTerm('');
-                    }
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                    selectedCategory === category.name
-                      ? 'bg-primary text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-5 py-3 rounded-[20px] font-bold text-xs whitespace-nowrap transition-all flex items-center gap-2 ${selectedCategory === cat.id
+                      ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                      : 'bg-white border border-gray-200 text-gray-600 hover:border-primary'
+                    }`}
                 >
-                  <span className="mr-1">{category.emoji}</span>
-                  {category.name}
+                  <span>{cat.emoji}</span>
+                  {cat.name}
                 </button>
               ))}
             </div>
@@ -190,95 +118,84 @@ export default function Products({ user, onLogout }) {
         </div>
       </section>
 
-      {/* Products Section */}
-      <section className="py-8">
+      {/* Products List - DENSE LIST/GRID */}
+      <main className="flex-1 py-8">
         <div className="container mx-auto px-4">
-          {/* Section Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              🍽️ Nossos Produtos
-            </h1>
-            <p className="text-gray-600">
-              Descubra pratos deliciosos preparados com amor
-            </p>
-            <div className="mt-2 text-sm text-gray-500">
-              {filteredProducts.length} produto{filteredProducts.length !== 1 ? 's' : ''} encontrado{filteredProducts.length !== 1 ? 's' : ''}
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-black text-gray-900">
+              {selectedCategory === 'Todos' ? 'Descubra Novos Sabores' : selectedCategory}
+            </h2>
+            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              {filteredProducts.length} itens
             </div>
           </div>
 
-          {/* Products Grid */}
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               {filteredProducts.map((product) => {
                 const cartItem = cart.find(item => item.idProduto === product.id);
-                const productEmoji = product.nome.toLowerCase().includes('pizza') ? '🍕' :
-                                   product.nome.toLowerCase().includes('hambúrguer') || product.nome.toLowerCase().includes('burger') ? '🍔' :
-                                   product.nome.toLowerCase().includes('salada') ? '🥗' :
-                                   product.nome.toLowerCase().includes('refrigerante') || product.nome.toLowerCase().includes('coca') ? '🥤' :
-                                   product.nome.toLowerCase().includes('sorvete') || product.nome.toLowerCase().includes('doce') ? '🍦' : '🍽️';
-
                 return (
-                  <div key={product.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 group">
-                    {/* Product Image */}
-                    <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-                      <span className="text-6xl group-hover:scale-110 transition-transform duration-300">
-                        {productEmoji}
-                      </span>
-                      {cartItem && (
-                        <div className="absolute top-3 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                          ✓
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Product Info */}
-                    <div className="p-5">
-                      <h3 className="font-semibold text-lg mb-2 text-gray-900 line-clamp-2 group-hover:text-primary transition-colors">
-                        {product.nome}
-                      </h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                        {product.descricao}
-                      </p>
-
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-xl font-bold text-primary">
-                          R$ {product.preco.toFixed(2)}
-                        </span>
-                        <div className="flex items-center text-yellow-400">
-                          <span className="text-sm">⭐</span>
-                          <span className="text-sm text-gray-600 ml-1">
-                            {(4.5 + Math.random() * 0.5).toFixed(1)}
-                          </span>
-                        </div>
+                  <div key={product.id} className="bg-white rounded-[32px] p-4 shadow-sm border border-gray-100 hover:shadow-xl transition-all group animate-fade-in-up flex flex-col">
+                    <div className="relative mb-3">
+                      <div className="aspect-[4/3] rounded-[24px] overflow-hidden bg-gray-50">
+                        {product.imagemUrl ? (
+                          <img src={product.imagemUrl} alt={product.nome} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-4xl opacity-40">
+                            {product.nome.toLowerCase().includes('pizza') ? '🍕' : '🍽️'}
+                          </div>
+                        )}
                       </div>
 
-                      {/* Add to Cart Section */}
+                      <button
+                        onClick={() => setRatingModal({ isOpen: true, product })}
+                        className="absolute top-2 right-2 bg-white/90 backdrop-blur-md px-2 py-1 rounded-xl flex items-center gap-1 shadow-sm"
+                      >
+                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                        <span className="text-[10px] font-black text-gray-900">
+                          {product.avaliacao ? product.avaliacao.toFixed(1) : 'NEW'}
+                        </span>
+                      </button>
+                    </div>
+
+                    <div className="flex-1 mb-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[8px] font-black text-primary uppercase tracking-widest">
+                          {product.categoriaLanches || 'Geral'}
+                        </span>
+                        <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest">|</span>
+                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                          {product.restaurante || 'Delivery'}
+                        </span>
+                      </div>
+                      <h3 className="text-sm font-black text-gray-900 mb-1 group-hover:text-primary transition-colors line-clamp-1">
+                        {product.nome}
+                      </h3>
+                      <p className="text-gray-400 font-medium text-[10px] leading-tight line-clamp-2 h-6">
+                        {product.descricao}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                      <span className="text-base font-black text-gray-900">R$ {product.preco.toFixed(2)}</span>
+
                       {cartItem ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-center gap-2 bg-gray-50 rounded-lg p-2">
-                            <button
-                              onClick={() => updateQuantity(product.id, cartItem.quantidade - 1)}
-                              className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
-                            >
-                              <Minus className="w-4 h-4" />
-                            </button>
-                            <span className="font-semibold min-w-[2rem] text-center">
-                              {cartItem.quantidade}
-                            </span>
-                            <button
-                              onClick={() => updateQuantity(product.id, cartItem.quantidade + 1)}
-                              className="w-8 h-8 rounded-full bg-primary text-white hover:bg-purple-700 flex items-center justify-center transition-colors"
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
-                          </div>
-                          <Link
-                            to="/cart"
-                            className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                        <div className="flex items-center gap-2 bg-gray-900 rounded-[14px] p-1 scale-90 origin-right">
+                          <button
+                            onClick={() => updateQuantity(product.id, cartItem.quantidade - 1)}
+                            className="w-7 h-7 rounded-lg bg-white/10 text-white flex items-center justify-center"
                           >
-                            <ShoppingCart className="w-4 h-4" />
-                            Ver Carrinho
-                          </Link>
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="font-black text-white text-xs min-w-[14px] text-center">
+                            {cartItem.quantidade}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(product.id, cartItem.quantidade + 1)}
+                            className="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
                         </div>
                       ) : (
                         <button
@@ -289,10 +206,9 @@ export default function Products({ user, onLogout }) {
                             valorUnitario: product.preco,
                             preparationTime: getPreparationTime(product)
                           })}
-                          className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                          className="bg-primary text-white w-9 h-9 rounded-xl flex items-center justify-center shadow-md shadow-primary/20 hover:scale-110 active:scale-95 transition-all"
                         >
-                          <Plus className="w-4 h-4" />
-                          Adicionar
+                          <Plus className="w-5 h-5" />
                         </button>
                       )}
                     </div>
@@ -301,76 +217,79 @@ export default function Products({ user, onLogout }) {
               })}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Nenhum produto encontrado
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Tente buscar por outros termos ou navegue pelas categorias.
-              </p>
+            <div className="text-center py-20 bg-white rounded-[40px] border border-gray-100">
+              <div className="text-6xl mb-6">🔍</div>
+              <h3 className="text-2xl font-black text-gray-900 mb-2">Nada por aqui</h3>
               <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategory('Todos');
-                }}
-                className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                onClick={() => { setSearchTerm(''); setSelectedCategory('Todos'); }}
+                className="text-primary font-bold hover:underline"
               >
-                Ver Todos os Produtos
+                Limpar Filtros
               </button>
             </div>
           )}
         </div>
-      </section>
+      </main>
 
-      {/* Popular Products Section */}
-      <section className="py-8 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              🔥 Mais Pedidos
-            </h2>
-            <p className="text-gray-600">
-              Os favoritos dos nossos clientes
-            </p>
-          </div>
+      {/* Rating Modal */}
+      {ratingModal.isOpen && (
+        <RatingModal
+          product={ratingModal.product}
+          onClose={() => setRatingModal({ isOpen: false, product: null })}
+          onSuccess={() => {
+            setRatingModal({ isOpen: false, product: null });
+            fetchProducts().then(setProducts).catch(console.error);
+          }}
+        />
+      )}
+    </div>
+  );
+}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                name: "Pizza Margherita",
-                price: 45.90,
-                emoji: "🍕",
-                description: "Molho, mussarela e manjericão"
-              },
-              {
-                name: "Hambúrguer Gourmet",
-                price: 32.50,
-                emoji: "🍔",
-                description: "Blend especial com queijo e bacon"
-              },
-              {
-                name: "Salada Caesar",
-                price: 28.90,
-                emoji: "🥗",
-                description: "Alface, croutons e molho caesar"
-              }
-            ].map((product, index) => (
-              <div key={index} className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow text-center">
-                <div className="text-5xl mb-3">{product.emoji}</div>
-                <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-                <p className="text-gray-600 text-sm mb-3">{product.description}</p>
-                <div className="text-xl font-bold text-primary mb-3">
-                  R$ {product.price.toFixed(2)}
-                </div>
-                <button className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors w-full">
-                  Pedir Agora
-                </button>
-              </div>
-            ))}
-          </div>
+function RatingModal({ product, onClose, onSuccess }) {
+  const [rating, setRating] = useState(5);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await rateProduct(product.id, rating);
+      onSuccess();
+    } catch (error) {
+      console.error('Erro ao avaliar:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] animate-fade-in-up">
+      <div className="bg-white rounded-[32px] max-w-sm w-full p-8 text-center shadow-2xl">
+        <h3 className="text-xl font-black text-gray-900 mb-2">Avaliar</h3>
+        <p className="text-gray-500 font-medium mb-6 text-sm">{product.nome}</p>
+
+        <div className="flex justify-center gap-2 mb-8">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              onClick={() => setRating(star)}
+              className={`text-3xl transition-all ${rating >= star ? 'text-yellow-400' : 'text-gray-200'}`}
+            >
+              ★
+            </button>
+          ))}
         </div>
-      </section>
+
+        <div className="flex gap-3">
+          <button onClick={onClose} className="btn btn-secondary flex-1 py-3 rounded-2xl text-sm" disabled={submitting}>
+            Voltar
+          </button>
+          <button onClick={handleSubmit} className="btn btn-primary flex-1 py-3 rounded-2xl text-sm" disabled={submitting}>
+            Enviar
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

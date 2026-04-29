@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import Cart from './pages/Cart';
@@ -37,8 +38,19 @@ function AppContent() {
     navigate('/login');
   };
 
+  const handleUpdateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
   if (!user) {
-    return <Login onLogin={handleLogin} />;
+    return (
+      <Routes>
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        <Route path="/register" element={<Register onRegister={handleLogin} />} />
+        <Route path="*" element={<Login onLogin={handleLogin} />} />
+      </Routes>
+    );
   }
 
   return (
@@ -48,7 +60,7 @@ function AppContent() {
         <Route path="/products" element={<Products user={user} onLogout={handleLogout} />} />
         <Route path="/cart" element={<Cart user={user} onLogout={handleLogout} />} />
         <Route path="/orders" element={<Orders user={user} onLogout={handleLogout} />} />
-        <Route path="/profile" element={<Profile user={user} onLogout={handleLogout} />} />
+        <Route path="/profile" element={<Profile user={user} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />} />
         <Route path="/admin" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
         <Route path="/admin/products" element={<AdminProducts user={user} onLogout={handleLogout} />} />
         <Route path="/admin/orders" element={<AdminOrders user={user} onLogout={handleLogout} />} />

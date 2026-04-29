@@ -19,12 +19,7 @@ export default function AdminUsers({ user, onLogout }) {
       setUsers(data);
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
-      // Fallback to mock data
-      setUsers([
-        { id: 1, nome: 'João Silva', email: 'joao@email.com' },
-        { id: 2, nome: 'Maria Santos', email: 'maria@email.com' },
-        { id: 3, nome: 'Pedro Costa', email: 'pedro@email.com' }
-      ]);
+      alert('Erro ao carregar usuários do servidor.');
     } finally {
       setLoading(false);
     }
@@ -45,7 +40,7 @@ export default function AdminUsers({ user, onLogout }) {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <Link to="/admin" className="text-2xl font-bold text-primary">
-                🍕 Delivery Admin
+                 Delivery Admin
               </Link>
             </div>
 

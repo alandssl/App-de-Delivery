@@ -1,349 +1,207 @@
-import { useState } from 'react';
-import { Eye, Clock, CheckCircle, XCircle, Menu, X, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Eye, Clock, CheckCircle, XCircle, Menu, X, LogOut, ChevronLeft, Package, User, Save } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { fetchOrders, updateOrderStatus } from '../services/api';
 
 export default function AdminOrders({ user, onLogout }) {
+  const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const location = useLocation();
+  const [loading, setLoading] = useState(true);
+  const [tempStatus, setTempStatus] = useState('');
+  const [updating, setUpdating] = useState(false);
 
-  // Mock orders data
-  const orders = [
-    {
-      id: 1,
-      customer: 'João Silva',
-      customerId: 1,
-      date: '2024-01-15T14:30:00',
-      status: 'ENTREGUE',
-      total: 45.50,
-      items: ['Pizza Margherita', 'Refrigerante'],
-      address: 'Rua das Flores, 123'
-    },
-    {
-      id: 2,
-      customer: 'Maria Santos',
-      customerId: 2,
-      date: '2024-01-14T19:15:00',
-      status: 'EM_PREPARO',
-      total: 32.00,
-      items: ['Hambúrguer', 'Batata Frita'],
-      address: 'Av. Paulista, 456'
-    },
-    {
-      id: 3,
-      customer: 'Pedro Costa',
-      customerId: 3,
-      date: '2024-01-13T12:45:00',
-      status: 'CRIADO',
-      total: 28.90,
-      items: ['Salada Caesar', 'Suco Natural'],
-      address: 'Rua das Flores, 123'
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  const loadOrders = async () => {
+    try {
+      const data = await fetchOrders();
+      setOrders(data);
+    } catch (error) {
+      console.error('Erro ao carregar pedidos:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const handleUpdateStatus = async () => {
+    if (!tempStatus || !selectedOrder) return;
+    setUpdating(true);
+    try {
+      await updateOrderStatus(selectedOrder.id, tempStatus);
+      await loadOrders();
+      setSelectedOrder(null);
+      alert('Status atualizado com sucesso!');
+    } catch (err) {
+      alert('Erro ao atualizar status');
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   const getStatusInfo = (status) => {
     const statusMap = {
-      'CRIADO': { label: 'Criado', color: 'text-blue-600', bg: 'bg-blue-100' },
-      'PEDIDO_ACEITO': { label: 'Aceito', color: 'text-yellow-600', bg: 'bg-yellow-100' },
-      'EM_PREPARO': { label: 'Em Preparo', color: 'text-orange-600', bg: 'bg-orange-100' },
-      'SAIU_PARA_ENTREGA': { label: 'Em Entrega', color: 'text-purple-600', bg: 'bg-purple-100' },
-      'ENTREGUE': { label: 'Entregue', color: 'text-green-600', bg: 'bg-green-100' },
-      'CANCELADO': { label: 'Cancelado', color: 'text-red-600', bg: 'bg-red-100' }
+      'CRIADO': { label: 'Pendente', color: 'text-blue-500', bg: 'bg-blue-50' },
+      'PEDIDO_ACEITO': { label: 'Aceito', color: 'text-indigo-500', bg: 'bg-indigo-50' },
+      'EM_PREPARO': { label: 'Cozinha', color: 'text-orange-500', bg: 'bg-orange-50' },
+      'SAIU_PARA_ENTREGA': { label: 'Rota', color: 'text-purple-500', bg: 'bg-purple-50' },
+      'ENTREGUE': { label: 'Finalizado', color: 'text-green-500', bg: 'bg-green-50' },
+      'CANCELADO': { label: 'Cancelado', color: 'text-red-500', bg: 'bg-red-50' }
     };
     return statusMap[status] || statusMap['CRIADO'];
   };
 
-  const updateOrderStatus = (orderId, newStatus) => {
-    // In a real app, this would call an API
-    console.log(`Updating order ${orderId} to status ${newStatus}`);
-    // For demo purposes, we'll just log it
-  };
-
-  const navigation = [
-    { name: 'Dashboard', href: '/admin', icon: '📊' },
-    { name: 'Produtos', href: '/admin/products', icon: '📦' },
-    { name: 'Pedidos', href: '/admin/orders', icon: '🛒' },
-    { name: 'Usuários', href: '/admin/users', icon: '👥' }
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Link to="/admin" className="text-2xl font-bold text-primary">
-                🍕 Delivery Admin
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center gap-6">
+              <Link to="/admin" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                <ChevronLeft className="w-6 h-6 text-gray-600" />
               </Link>
+              <h1 className="text-xl font-black text-gray-900 tracking-tight uppercase italic">Gestão de Pedidos</h1>
             </div>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${
-                    location.pathname === item.href
-                      ? 'text-primary'
-                      : 'text-gray-600 hover:text-primary'
-                  }`}
-                >
-                  <span>{item.icon}</span>
-                  {item.name}
-                </Link>
-              ))}
-            </nav>
-
+            
             <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-gray-900">{user?.name}</span>
-
-              <button
-                onClick={onLogout}
-                className="text-gray-600 hover:text-error transition-colors"
-              >
+              <span className="hidden md:block text-sm font-black text-gray-400 uppercase tracking-widest">{orders.length} pedidos hoje</span>
+              <button onClick={onLogout} className="p-3 bg-gray-50 text-gray-400 hover:text-red-500 rounded-2xl transition-all">
                 <LogOut className="w-5 h-5" />
-              </button>
-
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden text-gray-600"
-              >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
-
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="md:hidden border-t border-gray-200 py-4">
-              <nav className="flex flex-col gap-4">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors ${
-                      location.pathname === item.href
-                        ? 'text-primary'
-                        : 'text-gray-600 hover:text-primary'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <span>{item.icon}</span>
-                    {item.name}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-          )}
         </div>
       </header>
 
-      {/* Orders Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Gerenciar Pedidos</h1>
-          <p className="text-secondary">{orders.length} pedidos no total</p>
-        </div>
-
-        <div className="card">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pedido
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cliente
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {orders.map((order) => {
-                  const statusInfo = getStatusInfo(order.status);
-                  return (
-                    <tr key={order.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">#{order.id}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{order.customer}</div>
-                        <div className="text-sm text-gray-500">ID: {order.customerId}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {new Date(order.date).toLocaleDateString('pt-BR')}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {new Date(order.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.bg} ${statusInfo.color}`}>
-                          {statusInfo.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        R$ {order.total.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setSelectedOrder(order)}
-                            className="text-primary hover:text-primary-dark"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <select
-                            value={order.status}
-                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                            className="text-xs border border-gray-300 rounded px-2 py-1"
-                          >
-                            <option value="CRIADO">Criado</option>
-                            <option value="PEDIDO_ACEITO">Aceito</option>
-                            <option value="EM_PREPARO">Em Preparo</option>
-                            <option value="SAIU_PARA_ENTREGA">Em Entrega</option>
-                            <option value="ENTREGUE">Entregue</option>
-                            <option value="CANCELADO">Cancelado</option>
-                          </select>
-                        </div>
-                      </td>
+      <main className="flex-1 py-12">
+        <div className="container mx-auto px-4">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-32">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sincronizando Banco de Dados...</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-[40px] shadow-premium border border-gray-100 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left bg-gray-50/50">
+                      <th className="px-8 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Pedido</th>
+                      <th className="px-8 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
+                      <th className="px-8 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                      <th className="px-8 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Total</th>
+                      <th className="px-8 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Ações</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {orders.map((order) => {
+                      const status = getStatusInfo(order.statusPedido || order.status);
+                      return (
+                        <tr key={order.id} className="group hover:bg-gray-50/50 transition-colors">
+                          <td className="px-8 py-6 font-black text-gray-900">#{order.id}</td>
+                          <td className="px-8 py-6">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 font-bold text-xs">
+                                {order.usuarioId?.name?.charAt(0) || 'U'}
+                              </div>
+                              <span className="font-bold text-gray-900">{order.usuarioId?.name || 'Cliente'}</span>
+                            </div>
+                          </td>
+                          <td className="px-8 py-6">
+                            <span className={`px-4 py-2 rounded-2xl ${status.bg} ${status.color} font-black text-[10px] uppercase tracking-widest`}>
+                              {status.label}
+                            </span>
+                          </td>
+                          <td className="px-8 py-6 text-right font-black text-gray-900">
+                            R$ {(order.valorTotal || 0).toFixed(2)}
+                          </td>
+                          <td className="px-8 py-6">
+                            <div className="flex justify-center gap-2">
+                              <button
+                                onClick={() => { setSelectedOrder(order); setTempStatus(order.statusPedido || order.status); }}
+                                className="px-6 py-3 bg-gray-50 text-gray-900 rounded-xl font-bold text-xs hover:bg-primary hover:text-white transition-all flex items-center gap-2"
+                              >
+                                <Eye className="w-4 h-4" /> Gerenciar
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      </main>
 
-      {/* Order Details Modal */}
       {selectedOrder && (
-        <OrderDetailsModal
-          order={selectedOrder}
-          onClose={() => setSelectedOrder(null)}
-        />
-      )}
-    </div>
-  );
-}
-
-function OrderDetailsModal({ order, onClose }) {
-  const statusInfo = getStatusInfo(order.status);
-
-  function getStatusInfo(status) {
-    const statusMap = {
-      'CRIADO': { label: 'Criado', color: 'text-blue-600', progress: 20 },
-      'PEDIDO_ACEITO': { label: 'Aceito', color: 'text-yellow-600', progress: 40 },
-      'EM_PREPARO': { label: 'Em Preparo', color: 'text-orange-600', progress: 60 },
-      'SAIU_PARA_ENTREGA': { label: 'Em Entrega', color: 'text-purple-600', progress: 80 },
-      'ENTREGUE': { label: 'Entregue', color: 'text-green-600', progress: 100 },
-      'CANCELADO': { label: 'Cancelado', color: 'text-red-600', progress: 0 }
-    };
-    return statusMap[status] || statusMap['CRIADO'];
-  }
-
-  const currentStatus = getStatusInfo(order.status);
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Pedido #{order.id}</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
-
-        <div className="p-6 space-y-6">
-          {/* Status Progress */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3">Status do Pedido</h3>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Progresso</span>
-                <span>{currentStatus.progress}%</span>
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] animate-fade-in-up">
+          <div className="bg-white rounded-[40px] max-w-lg w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+            <div className="p-10 border-b border-gray-50 flex items-center justify-between">
+              <h2 className="text-3xl font-black text-gray-900">Pedido #{selectedOrder.id}</h2>
+              <button onClick={() => setSelectedOrder(null)} className="p-2 text-gray-400 hover:text-gray-900">
+                <X className="w-8 h-8" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-10 space-y-8">
+              <div className="bg-gray-50 rounded-[32px] p-8">
+                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Cliente</p>
+                 <p className="text-xl font-black text-gray-900">{selectedOrder.usuarioId?.name || 'Cliente'}</p>
+                 <p className="text-sm font-bold text-gray-500 mt-1">{selectedOrder.usuarioId?.email || 'email@exemplo.com'}</p>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-primary h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${currentStatus.progress}%` }}
-                ></div>
-              </div>
-              <p className={`text-sm font-medium ${currentStatus.color}`}>
-                {currentStatus.label}
-              </p>
-            </div>
-          </div>
 
-          {/* Order Details */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Cliente</h4>
-              <p className="text-secondary text-sm">{order.customer}</p>
-              <p className="text-secondary text-sm">ID: {order.customerId}</p>
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Data do Pedido</h4>
-              <p className="text-secondary text-sm">
-                {new Date(order.date).toLocaleString('pt-BR')}
-              </p>
-            </div>
-          </div>
-
-          {/* Items */}
-          <div>
-            <h4 className="font-medium text-gray-900 mb-3">Itens do Pedido</h4>
-            <div className="space-y-2">
-              {order.items.map((item, index) => (
-                <div key={index} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
-                  <span className="text-secondary">{item}</span>
-                  <span className="text-sm text-gray-500">1x</span>
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Produtos do Pedido</p>
+                <div className="space-y-3">
+                   {(selectedOrder.items || selectedOrder.itens)?.map((item, idx) => (
+                     <div key={idx} className="flex justify-between items-center bg-gray-50/50 p-4 rounded-2xl">
+                        <span className="font-bold text-gray-900">{item.quantidade}x {item.nomeProduto || item.produto?.nome || 'Item'}</span>
+                        <span className="font-black text-gray-900">R$ {(item.valorUnitario * item.quantidade).toFixed(2)}</span>
+                     </div>
+                   ))}
                 </div>
-              ))}
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Atualizar Status</p>
+                <select 
+                  className="w-full bg-gray-50 border border-gray-100 px-6 py-5 rounded-[24px] font-black text-xs uppercase tracking-widest outline-none focus:border-primary"
+                  value={tempStatus}
+                  onChange={(e) => setTempStatus(e.target.value)}
+                >
+                  <option value="CRIADO">Aguardando Aprovação</option>
+                  <option value="PEDIDO_ACEITO">Aceitar Pedido</option>
+                  <option value="EM_PREPARO">Mandar para Cozinha</option>
+                  <option value="SAIU_PARA_ENTREGA">Saiu para Entrega</option>
+                  <option value="ENTREGUE">Marcar como Entregue</option>
+                  <option value="CANCELADO">Cancelar Pedido</option>
+                </select>
+              </div>
             </div>
-            <div className="flex justify-between pt-3 border-t border-gray-200 mt-3">
-              <span className="font-semibold">Total</span>
-              <span className="font-semibold text-primary">R$ {order.total.toFixed(2)}</span>
+
+            <div className="p-10 bg-gray-50 flex items-center justify-between gap-6">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Geral</span>
+                <span className="text-4xl font-black text-primary">R$ {(selectedOrder.valorTotal || 0).toFixed(2)}</span>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={handleUpdateStatus} 
+                  disabled={updating}
+                  className="bg-primary text-white px-10 py-5 rounded-[24px] font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/30 flex items-center gap-2 hover:bg-primary-dark transition-all disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" /> {updating ? 'Salvando...' : 'Salvar'}
+                </button>
+              </div>
             </div>
           </div>
-
-          {/* Delivery Address */}
-          <div>
-            <h4 className="font-medium text-gray-900 mb-2">Endereço de Entrega</h4>
-            <p className="text-secondary text-sm">{order.address}</p>
-          </div>
         </div>
-
-        <div className="p-6 border-t border-gray-200">
-          <button
-            onClick={onClose}
-            className="btn btn-primary w-full"
-          >
-            Fechar
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
