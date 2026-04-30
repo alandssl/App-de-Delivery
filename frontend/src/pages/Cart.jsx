@@ -203,7 +203,7 @@ export default function Cart({ user, onLogout }) {
                                 <p className="text-sm font-black text-gray-900">•••• {card.numeroCartao?.slice(-4) || '****'}</p>
                                 {card.isPrimary && <span className="text-[8px] text-primary font-black uppercase">Padrão</span>}
                               </button>
-                            )) : (
+                            )) : (  
                               <div className="col-span-full p-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-center">
                                 <p className="text-[10px] font-black text-gray-400 uppercase">Nenhum cartão salvo</p>
                                 <Link to="/profile" className="text-[10px] font-black text-primary uppercase hover:underline">Adicionar no Perfil</Link>
